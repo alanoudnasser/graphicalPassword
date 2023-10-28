@@ -76,13 +76,11 @@ public class WheelView extends View {
         // Set the background color to white
         canvas.drawColor(Color.WHITE);
 
-        canvas.rotate(rotationAngle, width / 2f, height / 2f);
-
-        linePaint.setStrokeWidth(5);  // Adjust the stroke width to make the line thinner
-        linePaint.setColor(Color.BLACK);  // Set the color to black for darker lines
-
         int startAngle = 0;
         int sweepAngle = 360 / NUM_SECTORS;
+
+        edgePaint.setStrokeWidth(10);  // Adjust the stroke width to make the edges thinner
+        edgePaint.setColor(Color.BLACK);  // Set the color to black for darker edges
 
         for (int i = 0; i < NUM_SECTORS; i++) {
             int endAngle = startAngle + sweepAngle;
@@ -103,17 +101,26 @@ public class WheelView extends View {
             linePath.arcTo(sectorRect, startAngle, sweepAngle);
             canvas.drawPath(linePath, linePaint);
 
-            // Draw the alphabet in the center of the sector
+            // Draw the alphabet in the center of the sector with rotation
             float centerX = width / 2f;
             float centerY = height / 2f;
             float angle = (startAngle + endAngle) / 2f;
             float x = centerX + (float) (radius * 0.75 * Math.cos(Math.toRadians(angle)));
             float y = centerY + (float) (radius * 0.75 * Math.sin(Math.toRadians(angle)));
+
+            canvas.save();  // Save the canvas state
+            canvas.rotate(rotationAngle, centerX, centerY);  // Apply rotation transformation
             canvas.drawText(ALPHABETS[i], x, y, textPaint);
+            canvas.restore();  // Restore the canvas state
 
             // Update the start angle for the next sector
             startAngle = endAngle;
         }
+
+        // Draw an outer stroke for the circle
+        edgePaint.setStrokeWidth(5);  // Adjust the stroke width as needed
+        edgePaint.setStyle(Paint.Style.STROKE);
+        canvas.drawCircle(width / 2f, height / 2f, radius, edgePaint);
     }
 
     public void rotateClockwise() {
