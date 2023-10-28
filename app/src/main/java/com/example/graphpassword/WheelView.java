@@ -79,8 +79,7 @@ public class WheelView extends View {
         int startAngle = 0;
         int sweepAngle = 360 / NUM_SECTORS;
 
-        edgePaint.setStrokeWidth(10);  // Adjust the stroke width to make the edges thinner
-        edgePaint.setColor(Color.BLACK);  // Set the color to black for darker edges
+        edgePaint.setStrokeWidth(10);  // Adjust the stroke width to make the edges thicker
 
         for (int i = 0; i < NUM_SECTORS; i++) {
             int endAngle = startAngle + sweepAngle;
@@ -94,9 +93,14 @@ public class WheelView extends View {
                     width / 2 + radius,
                     height / 2 + radius
             );
-            canvas.drawArc(sectorRect, startAngle, sweepAngle, true, edgePaint);
+
+            // Draw the sector edge without filling
+            canvas.drawArc(sectorRect, startAngle, sweepAngle, false, edgePaint);
 
             // Draw black lines to divide the sector
+            linePaint.setColor(Color.BLACK);
+            linePaint.setStrokeWidth(2);  // Adjust the stroke width for the lines
+
             Path linePath = new Path();
             linePath.arcTo(sectorRect, startAngle, sweepAngle);
             canvas.drawPath(linePath, linePaint);
@@ -113,16 +117,27 @@ public class WheelView extends View {
             canvas.drawText(ALPHABETS[i], x, y, textPaint);
             canvas.restore();  // Restore the canvas state
 
+            // Draw lines to divide the sector
+            float lineStartX = width / 2f;
+            float lineStartY = height / 2f;
+            float lineEndX = (float) (lineStartX + radius * Math.cos(Math.toRadians(startAngle)));
+            float lineEndY = (float) (lineStartY + radius * Math.sin(Math.toRadians(startAngle)));
+
+            canvas.drawLine(lineStartX, lineStartY, lineEndX, lineEndY, linePaint);
+
             // Update the start angle for the next sector
             startAngle = endAngle;
         }
 
-        // Draw an outer stroke for the circle
+        // Draw an outer stroke for the circle with different colors
         edgePaint.setStrokeWidth(5);  // Adjust the stroke width as needed
         edgePaint.setStyle(Paint.Style.STROKE);
-        canvas.drawCircle(width / 2f, height / 2f, radius, edgePaint);
-    }
 
+        for (int i = 0; i < NUM_SECTORS; i++) {
+            edgePaint.setColor(SECTOR_COLORS[i % SECTOR_COLORS.length]);
+            canvas.drawArc(sectorRect, i * sweepAngle, sweepAngle, false, edgePaint);
+        }
+    }
     public void rotateClockwise() {
         rotationAngle += 10;
         invalidate();
