@@ -1,4 +1,5 @@
 package com.example.graphpassword;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -8,6 +9,7 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -38,11 +40,17 @@ public class WheelView extends View {
     private RectF sectorRect;
     private float rotationAngle;
     private int selectedSector = -1;
+    private TextView textView;
 
     public WheelView(Context context) {
         super(context);
         init();
     }
+
+    public void setTextView(TextView textView) {
+        this.textView = textView;
+    }
+
 
     public WheelView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -97,14 +105,17 @@ public class WheelView extends View {
             int endAngle = startAngle + sweepAngle;
 
             edgePaint.setColor(SECTOR_COLORS[i % SECTOR_COLORS.length]);
+            for(int c=0;c<=8;c++) {
 
-            sectorRect.set(
-                    width / 2 - radius,
-                    height / 2 - radius,
-                    width / 2 + radius,
-                    height / 2 + radius
-            );
 
+
+                sectorRect.set(
+                        width / 2 - radius,
+                        height / 2 - radius,
+                        width / 2 + radius,
+                        height / 2 + radius
+                );
+            }
             canvas.drawArc(sectorRect, startAngle, sweepAngle, false, edgePaint);
 
             linePaint.setColor(Color.BLACK);
@@ -117,13 +128,16 @@ public class WheelView extends View {
             float centerX = width / 2f;
             float centerY = height / 2f;
             float angle = (startAngle + endAngle) / 2f;
-            float x = centerX + (float) (radius * 0.75 * Math.cos(Math.toRadians(angle)));
-            float y = centerY + (float) (radius * 0.75 * Math.sin(Math.toRadians(angle)));
 
-            canvas.save();
-            canvas.rotate(rotationAngle, centerX, centerY);
+            float x = centerX + (float) (radius * 0.75 * Math.cos(Math.toRadians(angle - rotationAngle)));
+            float y = centerY + (float) (radius * 0.75 * Math.sin(Math.toRadians(angle - rotationAngle)));
+
+            // Calculate the index for the color based on the current angle and update the letter color
+            int colorIndex = (i + (NUM_SECTORS - (int)(rotationAngle / (360 / NUM_SECTORS)))) % NUM_SECTORS;
+            textPaint.setColor(SECTOR_COLORS[colorIndex % SECTOR_COLORS.length]);
+
+            // Draw the letters with updated positions and colors according to the current rotation angle
             canvas.drawText(ALPHABETS[i], x, y, textPaint);
-            canvas.restore();
 
             float lineStartX = width / 2f;
             float lineStartY = height / 2f;
@@ -144,28 +158,76 @@ public class WheelView extends View {
         }
     }
 
+
+
+    private int getTouchedSector(float x, float y) {
+        int width = getWidth();
+        int height = getHeight();
+        int radius = Math.min(width, height) / 2;
+
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+
+        // Calculate the angle of the touched point with respect to the center of the wheel
+        double angle = Math.toDegrees(Math.atan2(y - centerY, x - centerX));
+        angle = (angle < 0) ? (360 + angle) : angle;
+
+        // Adjust for the current rotation angle
+        angle += rotationAngle;
+        angle = (angle < 0) ? (360 + angle) : angle;
+
+        // Calculate the selected sector based on the angle
+        int sector = (int) (angle * NUM_SECTORS / 360);
+        return sector;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        float x = event.getX();
-        float y = event.getY();
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            float x = event.getX();
+            float y = event.getY();
 
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                int newlySelectedSector = getTouchedSector(x, y);
-                if (newlySelectedSector != -1) {
-                    String selectedLetter = ALPHABETS[newlySelectedSector];
-                    int colorIndex = newlySelectedSector % SECTOR_COLORS.length;
-                    int sectorColor = SECTOR_COLORS[colorIndex];
-                    String colorName = getColorName(sectorColor);
+            int newlySelectedSector = getTouchedSector(x, y);
+
+//            if (newlySelectedSector != -1) {
+//                String selectedLetter = ALPHABETS[newlySelectedSector % ALPHABETS.length];
+//                int colorIndex = (newlySelectedSector + (NUM_SECTORS - (int) (rotationAngle / (360f / NUM_SECTORS)))) % NUM_SECTORS;
+//                int sectorColor = SECTOR_COLORS[colorIndex % SECTOR_COLORS.length];
+//                String colorName = getColorName(sectorColor);
+//
+//                Toast.makeText(getContext(), "Selected letter: " + selectedLetter + ", Color: " + colorName, Toast.LENGTH_SHORT).show();
+//
+//                if (textView != null) {
+//                    String currentText = textView.getText().toString();
+//                    String newText = currentText + selectedLetter;
+//
+//                    // Update the TextView on the UI thread
+//                    textView.post(() -> textView.setText(newText));
+//                }
+//
+//                return true;
+//            }
+            if (newlySelectedSector != -1) {
+                int colorIndex = (newlySelectedSector + (NUM_SECTORS - (int) (rotationAngle / (360f / NUM_SECTORS)))) % NUM_SECTORS;
+                int sectorColor = SECTOR_COLORS[colorIndex % SECTOR_COLORS.length];
+
+                if (sectorColor == Color.BLUE) {
+
+                String colorName = getColorName(sectorColor);
+                    String selectedLetter = ALPHABETS[newlySelectedSector % ALPHABETS.length];
+                    String currentText = textView.getText().toString();
+                    String newText = currentText + selectedLetter;
                     Toast.makeText(getContext(), "Selected letter: " + selectedLetter + ", Color: " + colorName, Toast.LENGTH_SHORT).show();
-
+                    // Update the TextView on the UI thread
+                    textView.post(() -> textView.setText(newText));
                 }
-                break;
+
+                return true;
+            }
         }
 
         return super.onTouchEvent(event);
     }
-
 
 
 
@@ -191,41 +253,33 @@ public class WheelView extends View {
         }
     }
 
-    private int getTouchedSector(float x, float y) {
-        int width = getWidth();
-        int height = getHeight();
-        int radius = Math.min(width, height) / 2;
 
-        float centerX = width / 2f;
-        float centerY = height / 2f;
-
-        // Calculate the angle based on the touch coordinates
-        double angle = Math.toDegrees(Math.atan2(y - centerY, x - centerX));
-        angle = (angle < 0) ? (360 + angle) : angle;
-
-        // Adjust for the current rotation angle
-        angle -= rotationAngle;
-        if (angle < 0) {
-            angle += 360;
-        }
-
-        // Compensate for the selected sector based on the current angle and rotation
-        int sector = (int) (angle * NUM_SECTORS / 360);
-
-        return sector;
-    }
 
 
 
 
 
     public void rotateClockwise() {
-        rotationAngle += 45;
-        invalidate();
+        ValueAnimator animator = ValueAnimator.ofFloat(rotationAngle, rotationAngle + 45);
+        animator.setDuration(500); // Set the duration of the animation in milliseconds
+
+        animator.addUpdateListener(animation -> {
+            rotationAngle = (float) animation.getAnimatedValue();
+            invalidate(); // Invalidate the view to trigger redraw
+        });
+
+        animator.start();
     }
 
     public void rotateCounterClockwise() {
-        rotationAngle -= 45;
-        invalidate();
+        ValueAnimator animator = ValueAnimator.ofFloat(rotationAngle, rotationAngle - 45);
+        animator.setDuration(500); // Set the duration of the animation in milliseconds
+
+        animator.addUpdateListener(animation -> {
+            rotationAngle = (float) animation.getAnimatedValue();
+            invalidate(); // Invalidate the view to trigger redraw
+        });
+
+        animator.start();
     }
 }

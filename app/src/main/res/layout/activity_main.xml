@@ -15,6 +15,16 @@
         android:layout_height="300dp"
         android:layout_centerInParent="true" />
 
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="268dp"
+        android:layout_height="46dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="-61dp"
+        android:layout_marginBottom="85dp"
+        android:layout_toStartOf="@+id/rotateCounterClockwiseButton"
+        android:textSize="24sp" />
+
     <Button
         android:id="@+id/rotateClockwiseButton"
         android:layout_width="wrap_content"
