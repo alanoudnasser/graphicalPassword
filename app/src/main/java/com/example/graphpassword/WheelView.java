@@ -23,14 +23,22 @@ public class WheelView extends View {
     private static final int NUM_SECTORS = 8;
     private static final int EDGE_COLOR = Color.RED;
     private static final int EDGE_WIDTH = 20;
-    private static final String[] ALPHABETS = {"A", "B", "C", "D", "E", "F", "G", "H"};
-    private static final int[] SECTOR_COLORS = {
+    private static final String[] ALPHABETS = {
+            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+            "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+            "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            ".", "/"
+    };    private static final int[] SECTOR_COLORS = {
             Color.BLUE, Color.GREEN, Color.YELLOW,
             Color.MAGENTA, Color.CYAN, Color.RED,
             Color.GRAY, Color.DKGRAY
     };
     private static final int LINE_COLOR = Color.BLACK;
     private static final int LINE_WIDTH = 5;
+    private int I =0;
+
 
     private Paint edgePaint;
     private Paint sectorPaint;
@@ -73,8 +81,8 @@ public class WheelView extends View {
 
         textPaint = new Paint();
         textPaint.setColor(Color.BLACK);
-        textPaint.setTextSize(40);
-        textPaint.setTextAlign(Paint.Align.CENTER);
+        textPaint.setTextSize(50);
+//        textPaint.setTextAlign(Paint.Align.LEFT);
 
         random = new Random();
         sectorRect = new RectF();
@@ -104,22 +112,19 @@ public class WheelView extends View {
         for (int i = 0; i < NUM_SECTORS; i++) {
             int endAngle = startAngle + sweepAngle;
 
-            edgePaint.setColor(SECTOR_COLORS[i % SECTOR_COLORS.length]);
-            for(int c=0;c<=8;c++) {
+      //     edgePaint.setColor(SECTOR_COLORS[i % SECTOR_COLORS.length]);
 
+            sectorRect.set(
+                    width / 2 - radius,
+                    height / 2 - radius,
+                    width / 2 + radius,
+                    height / 2 + radius
+            );
 
-
-                sectorRect.set(
-                        width / 2 - radius,
-                        height / 2 - radius,
-                        width / 2 + radius,
-                        height / 2 + radius
-                );
-            }
-            canvas.drawArc(sectorRect, startAngle, sweepAngle, false, edgePaint);
+         //   canvas.drawArc(sectorRect, startAngle, sweepAngle, true, edgePaint);     shadow
 
             linePaint.setColor(Color.BLACK);
-            linePaint.setStrokeWidth(2);
+           // linePaint.setStrokeWidth(1);
 
             Path linePath = new Path();
             linePath.arcTo(sectorRect, startAngle, sweepAngle);
@@ -127,38 +132,117 @@ public class WheelView extends View {
 
             float centerX = width / 2f;
             float centerY = height / 2f;
+
             float angle = (startAngle + endAngle) / 2f;
 
-            float x = centerX + (float) (radius * 0.75 * Math.cos(Math.toRadians(angle - rotationAngle)));
-            float y = centerY + (float) (radius * 0.75 * Math.sin(Math.toRadians(angle - rotationAngle)));
+            float[] letterCoordinates = new float[32]; // Increase the array size to 32
+            int[] letterIndices = new int[8]; // Move the declaration here
 
-            // Calculate the index for the color based on the current angle and update the letter color
-            int colorIndex = (i + (NUM_SECTORS - (int)(rotationAngle / (360 / NUM_SECTORS)))) % NUM_SECTORS;
-            textPaint.setColor(SECTOR_COLORS[colorIndex % SECTOR_COLORS.length]);
+            for (int j = 0; j < 8; j++) {
+                int row = j / 4; // Calculate the row based on the index
+                float letterspacing=15.0f;
+               angle = (startAngle + endAngle) / 2f - rotationAngle;
+                float x = centerX + (float) (radius * ((j +5) / 9.0) * Math.cos(Math.toRadians(angle ))) +(3/4)  * letterspacing;
+                float y = centerY + (float) (radius * ((j + 4) /9.0) * Math.sin(Math.toRadians(angle )))+( 3/4)  * letterspacing;
 
-            // Draw the letters with updated positions and colors according to the current rotation angle
-            canvas.drawText(ALPHABETS[i], x, y, textPaint);
+                textPaint.setTextAlign(Paint.Align.LEFT);
+                // Adjust the y-coordinate based on the row
+                if (row == 1) {
+                    //y -= textPaint.getTextSize();
+                    x = centerX + (float) (radius * ((j ) / 9.0) * Math.cos(Math.toRadians(angle ))) +(3)  * letterspacing;
+                     y = centerY + (float) (radius * ((j ) /9.0) * Math.sin(Math.toRadians(angle ))) +(3)  * letterspacing;
+//                    x = centerX + (float) (radius * ((j + 1) / 9.0) * Math.cos(Math.toRadians(angle - rotationAngle))) + (j % 4) * letterSpacing;
+//                    y = centerY + (float) (radius * ((j + 1) / 9.0) * Math.sin(Math.toRadians(angle - rotationAngle))) + (j % 4) * letterSpacing;
+                    textPaint.setTextAlign(Paint.Align.RIGHT);
+                    // Use j*2 and j*2+1 to properly fill the coordinates array
 
-            float lineStartX = width / 2f;
-            float lineStartY = height / 2f;
-            float lineEndX = (float) (lineStartX + radius * Math.cos(Math.toRadians(startAngle)));
-            float lineEndY = (float) (lineStartY + radius * Math.sin(Math.toRadians(startAngle)));
+                }
+                letterCoordinates[j * 4] = x;
+                letterCoordinates[j * 4+ 1] = y;
+            }
 
-            canvas.drawLine(lineStartX, lineStartY, lineEndX, lineEndY, linePaint);
+
+            for (int j = 0; j < 8; j++) {
+                letterIndices[j] = (i * 8 + j) % ALPHABETS.length;
+            }
+
+           // int colorIndex = (i + (NUM_SECTORS - (int) (rotationAngle / (360f / NUM_SECTORS)))) % NUM_SECTORS;
+            //textPaint.setColor(SECTOR_COLORS[colorIndex % SECTOR_COLORS.length]);
+
+            for (int j = 0; j < 8; j++) {
+
+                canvas.drawText(ALPHABETS[letterIndices[j]], letterCoordinates[j * 4], letterCoordinates[j * 4 + 1], textPaint);
+
+            }
 
             startAngle = endAngle;
         }
 
-        edgePaint.setStrokeWidth(5);
+        edgePaint.setStrokeWidth(7);
         edgePaint.setStyle(Paint.Style.STROKE);
 
         for (int i = 0; i < NUM_SECTORS; i++) {
             edgePaint.setColor(SECTOR_COLORS[i % SECTOR_COLORS.length]);
-            canvas.drawArc(sectorRect, i * sweepAngle, sweepAngle, false, edgePaint);
+            canvas.drawArc(sectorRect, i * sweepAngle, sweepAngle, true, edgePaint);
         }
     }
 
 
+
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            float x = event.getX();
+            float y = event.getY();
+
+            int newlySelectedSector = getTouchedSector(x, y);
+
+            if (newlySelectedSector != -1) {
+                int colorIndex = (newlySelectedSector + (NUM_SECTORS - (int) (rotationAngle / (360f / NUM_SECTORS)))) % NUM_SECTORS;
+                int sectorColor = SECTOR_COLORS[colorIndex % SECTOR_COLORS.length];
+
+                if (sectorColor == Color.BLUE) {
+                    String colorName = getColorName(sectorColor);
+
+                    // Calculate the starting index of the selected sector in ALPHABETS
+                    int sectorStartIndex = newlySelectedSector * 8;
+
+                    StringBuilder selectedLetters = new StringBuilder();
+                    for (int i = 0; i < 8; i++) {
+                        int letterIndex = (sectorStartIndex + i) % ALPHABETS.length;
+                        selectedLetters.append(ALPHABETS[letterIndex]+"-");
+                    }
+
+                    String message = "Selected letters: " + selectedLetters + ", Color: " + colorName;
+
+                    Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+
+                    if (textView != null) {
+                        String currentText = textView.getText().toString();
+                        String newText = currentText + selectedLetters.toString();
+
+                        String realPass = "Ss12.";
+                        if (checkpassword(newText, I)) {
+                            if (realPass.length() - 1 <= I) {
+                                Toast.makeText(getContext(), "complete", Toast.LENGTH_SHORT).show();
+                                textView.post(() -> textView.setText(realPass));
+                            } else {
+                                I++;
+                                Toast.makeText(getContext(), "True", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            I = 0;
+                        }
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        return super.onTouchEvent(event);
+    }
 
     private int getTouchedSector(float x, float y) {
         int width = getWidth();
@@ -181,53 +265,7 @@ public class WheelView extends View {
         return sector;
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            float x = event.getX();
-            float y = event.getY();
 
-            int newlySelectedSector = getTouchedSector(x, y);
-
-//            if (newlySelectedSector != -1) {
-//                String selectedLetter = ALPHABETS[newlySelectedSector % ALPHABETS.length];
-//                int colorIndex = (newlySelectedSector + (NUM_SECTORS - (int) (rotationAngle / (360f / NUM_SECTORS)))) % NUM_SECTORS;
-//                int sectorColor = SECTOR_COLORS[colorIndex % SECTOR_COLORS.length];
-//                String colorName = getColorName(sectorColor);
-//
-//                Toast.makeText(getContext(), "Selected letter: " + selectedLetter + ", Color: " + colorName, Toast.LENGTH_SHORT).show();
-//
-//                if (textView != null) {
-//                    String currentText = textView.getText().toString();
-//                    String newText = currentText + selectedLetter;
-//
-//                    // Update the TextView on the UI thread
-//                    textView.post(() -> textView.setText(newText));
-//                }
-//
-//                return true;
-//            }
-            if (newlySelectedSector != -1) {
-                int colorIndex = (newlySelectedSector + (NUM_SECTORS - (int) (rotationAngle / (360f / NUM_SECTORS)))) % NUM_SECTORS;
-                int sectorColor = SECTOR_COLORS[colorIndex % SECTOR_COLORS.length];
-
-                if (sectorColor == Color.BLUE) {
-
-                String colorName = getColorName(sectorColor);
-                    String selectedLetter = ALPHABETS[newlySelectedSector % ALPHABETS.length];
-                    String currentText = textView.getText().toString();
-                    String newText = currentText + selectedLetter;
-                    Toast.makeText(getContext(), "Selected letter: " + selectedLetter + ", Color: " + colorName, Toast.LENGTH_SHORT).show();
-                    // Update the TextView on the UI thread
-                    textView.post(() -> textView.setText(newText));
-                }
-
-                return true;
-            }
-        }
-
-        return super.onTouchEvent(event);
-    }
 
 
 
@@ -282,4 +320,20 @@ public class WheelView extends View {
 
         animator.start();
     }
+
+    public boolean checkpassword(String x,int y){
+        int i =y;
+        String realpass = "Ss12.";
+        String pass = x;
+        if (realpass.length() > 0 && pass.length() > 0 &&i<=realpass.length()) {
+            char firstLetter = realpass.charAt(i);
+            return pass.contains(String.valueOf(firstLetter));
+        }
+        return false;
+    }
+
+
+
+
+
 }
