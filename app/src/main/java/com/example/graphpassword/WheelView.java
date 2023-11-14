@@ -141,7 +141,7 @@ public class WheelView extends View {
 
             for (int j = 0; j < 8; j++) {
                 int row = j / 4; // Calculate the row based on the index
-                float letterspacing=15.0f;
+                float letterspacing=20.0f;
                angle = (startAngle + endAngle) / 2f - rotationAngle;
                 float x = centerX + (float) (radius * ((j +5) / 9.0) * Math.cos(Math.toRadians(angle ))) +(3/4)  * letterspacing;
                 float y = centerY + (float) (radius * ((j + 4) /9.0) * Math.sin(Math.toRadians(angle )))+( 3/4)  * letterspacing;
@@ -150,8 +150,8 @@ public class WheelView extends View {
                 // Adjust the y-coordinate based on the row
                 if (row == 1) {
                     //y -= textPaint.getTextSize();
-                    x = centerX + (float) (radius * ((j ) / 9.0) * Math.cos(Math.toRadians(angle ))) +(3)  * letterspacing;
-                     y = centerY + (float) (radius * ((j ) /9.0) * Math.sin(Math.toRadians(angle ))) +(3)  * letterspacing;
+                    x = centerX + (float) (radius * ((j ) / 9.0) * Math.cos(Math.toRadians(angle ))) +(2)  * letterspacing;
+                     y = centerY + (float) (radius * ((j ) /9.0) * Math.sin(Math.toRadians(angle ))) +(2)  * letterspacing;
 //                    x = centerX + (float) (radius * ((j + 1) / 9.0) * Math.cos(Math.toRadians(angle - rotationAngle))) + (j % 4) * letterSpacing;
 //                    y = centerY + (float) (radius * ((j + 1) / 9.0) * Math.sin(Math.toRadians(angle - rotationAngle))) + (j % 4) * letterSpacing;
                     textPaint.setTextAlign(Paint.Align.RIGHT);
@@ -178,9 +178,9 @@ public class WheelView extends View {
                 boolean isUppercase = Character.isUpperCase(letter.charAt(0));
                 boolean isNumber = Character.isDigit(letter.charAt(0));
                 // Apply bold formatting if it is uppercase
-
+                boolean isSpecialCharacter = letter.equals(".") || letter.equals("\\");
                 // Apply appropriate formatting based on the letter type
-                if (isUppercase) {
+                if (isUppercase || isSpecialCharacter) {
                     textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
                 } else if (isNumber) {
                     textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
