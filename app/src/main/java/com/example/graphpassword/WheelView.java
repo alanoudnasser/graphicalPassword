@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -163,6 +164,7 @@ public class WheelView extends View {
 
 
             for (int j = 0; j < 8; j++) {
+
                 letterIndices[j] = (i * 8 + j) % ALPHABETS.length;
             }
 
@@ -170,8 +172,25 @@ public class WheelView extends View {
             //textPaint.setColor(SECTOR_COLORS[colorIndex % SECTOR_COLORS.length]);
 
             for (int j = 0; j < 8; j++) {
+                String letter = ALPHABETS[letterIndices[j]]; // Get the letter from the ALPHABETS array
 
-                canvas.drawText(ALPHABETS[letterIndices[j]], letterCoordinates[j * 4], letterCoordinates[j * 4 + 1], textPaint);
+                // Check if the letter is uppercase
+                boolean isUppercase = Character.isUpperCase(letter.charAt(0));
+                boolean isNumber = Character.isDigit(letter.charAt(0));
+                // Apply bold formatting if it is uppercase
+
+                // Apply appropriate formatting based on the letter type
+                if (isUppercase) {
+                    textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+                } else if (isNumber) {
+                    textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
+                } else {
+                    textPaint.setTypeface(Typeface.DEFAULT);
+                }
+
+                // Draw the letter on the canvas
+                canvas.drawText(letter, letterCoordinates[j * 4], letterCoordinates[j * 4 + 1], textPaint);
+            //    canvas.drawText(ALPHABETS[letterIndices[j]], letterCoordinates[j * 4], letterCoordinates[j * 4 + 1], textPaint);
 
             }
 
