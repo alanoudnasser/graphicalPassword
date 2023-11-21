@@ -1,6 +1,7 @@
 package com.example.graphpassword;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,6 +13,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,11 +37,12 @@ public class WheelView extends View {
     };    private static final int[] SECTOR_COLORS = {
             Color.BLUE, Color.GREEN, Color.YELLOW,
             Color.MAGENTA, Color.CYAN, Color.RED,
-            Color.GRAY, Color.DKGRAY
+            Color.rgb(128, 0, 128), Color.DKGRAY
     };
     private static final int LINE_COLOR = Color.BLACK;
     private static final int LINE_WIDTH = 5;
     private int I =0;
+    private int usertry=0;
 
 
     private Paint edgePaint;
@@ -141,17 +145,18 @@ public class WheelView extends View {
 
             for (int j = 0; j < 8; j++) {
                 int row = j / 4; // Calculate the row based on the index
-                float letterspacing=20.0f;
+                int column = j % 4;  // Calculate the column based on the index
+                float letterspacing=30.5f;
                angle = (startAngle + endAngle) / 2f - rotationAngle;
                 float x = centerX + (float) (radius * ((j +5) / 9.0) * Math.cos(Math.toRadians(angle ))) +(3/4)  * letterspacing;
-                float y = centerY + (float) (radius * ((j + 4) /9.0) * Math.sin(Math.toRadians(angle )))+( 3/4)  * letterspacing;
+                float y = centerY + (float) (radius * ((j + 5) /9.0) * Math.sin(Math.toRadians(angle )))+( 3/4)  * letterspacing;
 
                 textPaint.setTextAlign(Paint.Align.LEFT);
                 // Adjust the y-coordinate based on the row
                 if (row == 1) {
                     //y -= textPaint.getTextSize();
-                    x = centerX + (float) (radius * ((j ) / 9.0) * Math.cos(Math.toRadians(angle ))) +(2)  * letterspacing;
-                     y = centerY + (float) (radius * ((j ) /9.0) * Math.sin(Math.toRadians(angle ))) +(2)  * letterspacing;
+                    x = centerX + (float) (radius * ((j) / 9.0) * Math.cos(Math.toRadians(angle))) +(2)  * letterspacing;
+                     y = centerY + (float) (radius * ((j) /9.0) * Math.sin(Math.toRadians(angle))) +(2)  * letterspacing;
 //                    x = centerX + (float) (radius * ((j + 1) / 9.0) * Math.cos(Math.toRadians(angle - rotationAngle))) + (j % 4) * letterSpacing;
 //                    y = centerY + (float) (radius * ((j + 1) / 9.0) * Math.sin(Math.toRadians(angle - rotationAngle))) + (j % 4) * letterSpacing;
                     textPaint.setTextAlign(Paint.Align.RIGHT);
@@ -218,6 +223,7 @@ public class WheelView extends View {
             int newlySelectedSector = getTouchedSector(x, y);
 
             if (newlySelectedSector != -1) {
+
                 int colorIndex = (newlySelectedSector + (NUM_SECTORS - (int) (rotationAngle / (360f / NUM_SECTORS)))) % NUM_SECTORS;
                 int sectorColor = SECTOR_COLORS[colorIndex % SECTOR_COLORS.length];
 
@@ -241,17 +247,27 @@ public class WheelView extends View {
                         String currentText = textView.getText().toString();
                         String newText = currentText + selectedLetters.toString();
 
-                        String realPass = "Ss12.";
+                        String realPass = "Ss12Kml";
+                        if(usertry!=3){
                         if (checkpassword(newText, I)) {
                             if (realPass.length() - 1 <= I) {
                                 Toast.makeText(getContext(), "complete", Toast.LENGTH_SHORT).show();
                                 textView.post(() -> textView.setText(realPass));
+
                             } else {
                                 I++;
                                 Toast.makeText(getContext(), "True", Toast.LENGTH_SHORT).show();
+                                shuffleAlphabets();
+                                invalidate();
                             }
                         } else {
                             I = 0;
+                            usertry++;
+                            shuffleAlphabets();
+                            invalidate();
+                        }}
+                        else {
+                            showAlertDialog("Max Attempts Exceeded", "You have exceeded the maximum number of login attempts. Do you want to reset your password?");
                         }
                     }
                 }
@@ -342,13 +358,29 @@ public class WheelView extends View {
 
     public boolean checkpassword(String x,int y){
         int i =y;
-        String realpass = "Ss12.";
+        String realpass = "Ss12Kml";
         String pass = x;
         if (realpass.length() > 0 && pass.length() > 0 &&i<=realpass.length()) {
             char firstLetter = realpass.charAt(i);
             return pass.contains(String.valueOf(firstLetter));
         }
         return false;
+    }
+
+    private void showAlertDialog(String title, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this.getContext());
+        builder.setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // Handle the click on the positive button (in this case, "OK").
+                        dialog.dismiss(); // Close the dialog
+                    }
+                });
+
+        // Create and show the AlertDialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 
 
