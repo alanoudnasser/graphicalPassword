@@ -41,6 +41,7 @@ public class WheelView extends View {
     };
     private static final int LINE_COLOR = Color.BLACK;
     private static final int LINE_WIDTH = 5;
+    private static final int POSITION_COLOR = Color.BLACK;
     private int I =0;
     private int usertry=0;
 
@@ -101,7 +102,7 @@ public class WheelView extends View {
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
+  protected void onDraw(Canvas canvas){
         super.onDraw(canvas);
 
         int width = getWidth();
@@ -111,13 +112,20 @@ public class WheelView extends View {
         // Set the background color to white
         canvas.drawColor(Color.WHITE);
 
+        int NUM_SECTORS = 8; // Number of sectors
+        int NUM_POSITIONS = 8; // Number of positions inside each sector
+
         int startAngle = 0;
         int sweepAngle = 360 / NUM_SECTORS;
 
         for (int i = 0; i < NUM_SECTORS; i++) {
             int endAngle = startAngle + sweepAngle;
 
-      //     edgePaint.setColor(SECTOR_COLORS[i % SECTOR_COLORS.length]);
+            // Draw the sector
+            Paint edgePaint = new Paint();
+            edgePaint.setColor(SECTOR_COLORS[i % SECTOR_COLORS.length]);
+            edgePaint.setStrokeWidth(8);
+            edgePaint.setStyle(Paint.Style.STROKE);
 
             sectorRect.set(
                     width / 2 - radius,
@@ -125,91 +133,188 @@ public class WheelView extends View {
                     width / 2 + radius,
                     height / 2 + radius
             );
+            canvas.drawArc(sectorRect, startAngle, sweepAngle, true, edgePaint);
 
-         //   canvas.drawArc(sectorRect, startAngle, sweepAngle, true, edgePaint);     shadow
+            // Calculate the angle between each position inside the sector
+            int numPositions = NUM_POSITIONS;
+            int positionAngle = sweepAngle / numPositions;
 
-            linePaint.setColor(Color.BLACK);
-           // linePaint.setStrokeWidth(1);
+            // Draw positions inside the sector
+            for (int j = 0; j < numPositions; j++) {
+                int positionStartAngle = startAngle + (j * positionAngle) + (int) rotationAngle;
+                int positionEndAngle = positionStartAngle + positionAngle;
+                // Calculate the position coordinates
+                float positionMidAngle = (startAngle + endAngle) / 2f-rotationAngle ;
 
-            Path linePath = new Path();
-            linePath.arcTo(sectorRect, startAngle, sweepAngle);
-            canvas.drawPath(linePath, linePaint);
+                float positionX, positionY;
+                float spacing= 60f;
 
-            float centerX = width / 2f;
-            float centerY = height / 2f;
-
-            float angle = (startAngle + endAngle) / 2f;
-
-            float[] letterCoordinates = new float[32]; // Increase the array size to 32
-            int[] letterIndices = new int[8]; // Move the declaration here
-
-            for (int j = 0; j < 8; j++) {
-                int row = j / 4; // Calculate the row based on the index
-                int column = j % 4;  // Calculate the column based on the index
-                float letterspacing=30.5f;
-               angle = (startAngle + endAngle) / 2f - rotationAngle;
-                float x = centerX + (float) (radius * ((j +5) / 9.0) * Math.cos(Math.toRadians(angle ))) +(3/4)  * letterspacing;
-                float y = centerY + (float) (radius * ((j + 5) /9.0) * Math.sin(Math.toRadians(angle )))+( 3/4)  * letterspacing;
-
-                textPaint.setTextAlign(Paint.Align.LEFT);
-                // Adjust the y-coordinate based on the row
-                if (row == 1) {
-                    //y -= textPaint.getTextSize();
-                    x = centerX + (float) (radius * ((j) / 9.0) * Math.cos(Math.toRadians(angle))) +(2)  * letterspacing;
-                     y = centerY + (float) (radius * ((j) /9.0) * Math.sin(Math.toRadians(angle))) +(2)  * letterspacing;
-//                    x = centerX + (float) (radius * ((j + 1) / 9.0) * Math.cos(Math.toRadians(angle - rotationAngle))) + (j % 4) * letterSpacing;
-//                    y = centerY + (float) (radius * ((j + 1) / 9.0) * Math.sin(Math.toRadians(angle - rotationAngle))) + (j % 4) * letterSpacing;
-                    textPaint.setTextAlign(Paint.Align.RIGHT);
-                    // Use j*2 and j*2+1 to properly fill the coordinates array
-
-                }
-                letterCoordinates[j * 4] = x;
-                letterCoordinates[j * 4+ 1] = y;
-            }
-
-
-            for (int j = 0; j < 8; j++) {
-
-                letterIndices[j] = (i * 8 + j) % ALPHABETS.length;
-            }
-
-           // int colorIndex = (i + (NUM_SECTORS - (int) (rotationAngle / (360f / NUM_SECTORS)))) % NUM_SECTORS;
-            //textPaint.setColor(SECTOR_COLORS[colorIndex % SECTOR_COLORS.length]);
-
-            for (int j = 0; j < 8; j++) {
-                String letter = ALPHABETS[letterIndices[j]]; // Get the letter from the ALPHABETS array
-
-                // Check if the letter is uppercase
-                boolean isUppercase = Character.isUpperCase(letter.charAt(0));
-                boolean isNumber = Character.isDigit(letter.charAt(0));
-                // Apply bold formatting if it is uppercase
-                boolean isSpecialCharacter = letter.equals(".") || letter.equals("\\");
-                // Apply appropriate formatting based on the letter type
-                if (isUppercase || isSpecialCharacter) {
-                    textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
-                } else if (isNumber) {
-                    textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
+                if (j < 4) {
+                    float characterAngle = positionMidAngle -8+ (j * 7.8f);
+                    // 4 characters positioned close to the arc
+                    float distanceFromArc = (float) (radius * 0.9); // Adjust the distance as desired
+                    float offset = (float) (radius * 0.09); // Adjust the offset as desired
+                    positionX = (float) (width / 2 + distanceFromArc * Math.cos(Math.toRadians( positionMidAngle -10+ (j * 7.8f))))  ;
+                    positionY = (float) (height / 2 + distanceFromArc * Math.sin(Math.toRadians( positionMidAngle -10+ (j * 7.8f)))) ;
+                } else if (j < 7) {
+                  //  float characterAngle = positionMidAngle -7 + (j * 10);
+                    // 3 characters positioned after the 4 characters
+                    float distanceFromArc = (float) (radius * 0.7); // Adjust the distance as desired
+                    float offset = (float) (radius * 0.01); // Adjust the offset as desired
+                    positionX = (float) (width / 2 + distanceFromArc * Math.cos(Math.toRadians(positionMidAngle -35 + (j * 7.5)))) ;
+                    positionY = (float) (height / 2 + distanceFromArc * Math.sin(Math.toRadians(positionMidAngle -35 + (j * 7.5))));
                 } else {
-                    textPaint.setTypeface(Typeface.DEFAULT);
+                    // 1 character positioned towards the inner sector
+                    float distanceFromArc = (float) (radius * 0.5); // Adjust the distance as desired
+                    float characterAngle = positionMidAngle +12 + (j * 10);
+                    float offset = (float) (radius * 0.08f); // Adjust the offset as desired
+                    positionX = (float) (width / 2 + distanceFromArc * Math.cos(Math.toRadians(positionMidAngle-14+(j*2)))) ;
+                    positionY = (float) (height / 2 + distanceFromArc * Math.sin(Math.toRadians(positionMidAngle-14+(j*2))));
+                }
+                // Calculate the size of the character based on the position radius
+                float positionSize = (float) (radius * 7);
+
+
+
+                // Draw the position number at the centered position
+                String character = ALPHABETS[(i * numPositions + j) % ALPHABETS.length];
+                Paint textPaint = new Paint();
+                textPaint.setColor(POSITION_COLOR);
+                textPaint.setTextSize(55); // Adjust the text size as desired
+                textPaint.setTextAlign(Paint.Align.CENTER);
+
+                // Apply font styles based on the type of character
+                if (Character.isUpperCase(character.charAt(0))) {
+                    textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+                } else if (Character.isDigit(character.charAt(0))) {
+                    textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
                 }
 
-                // Draw the letter on the canvas
-                canvas.drawText(letter, letterCoordinates[j * 4], letterCoordinates[j * 4 + 1], textPaint);
-            //    canvas.drawText(ALPHABETS[letterIndices[j]], letterCoordinates[j * 4], letterCoordinates[j * 4 + 1], textPaint);
+
+                // Draw the character
+                for (int k = 0; k < character.length(); k++) {
+                    canvas.drawText(String.valueOf(character.charAt(k)), positionX+1, positionY+1, textPaint);
+                    positionX += positionSize; // Move to the next position
+                }
+
 
             }
 
             startAngle = endAngle;
         }
-
-        edgePaint.setStrokeWidth(7);
-        edgePaint.setStyle(Paint.Style.STROKE);
-
-        for (int i = 0; i < NUM_SECTORS; i++) {
-            edgePaint.setColor(SECTOR_COLORS[i % SECTOR_COLORS.length]);
-            canvas.drawArc(sectorRect, i * sweepAngle, sweepAngle, true, edgePaint);
-        }
     }
+//
+//
+//
+//    {
+//        super.onDraw(canvas);
+//
+//        int width = getWidth();
+//        int height = getHeight();
+//        int radius = Math.min(width, height) / 2;
+//
+//        // Set the background color to white
+//        canvas.drawColor(Color.WHITE);
+//
+//        int startAngle = 0;
+//        int sweepAngle = 360 / NUM_SECTORS;
+//
+//        for (int i = 0; i < NUM_SECTORS; i++) {
+//            int endAngle = startAngle + sweepAngle;
+//
+//      //     edgePaint.setColor(SECTOR_COLORS[i % SECTOR_COLORS.length]);
+//
+//            sectorRect.set(
+//                    width / 2 - radius,
+//                    height / 2 - radius,
+//                    width / 2 + radius,
+//                    height / 2 + radius
+//            );
+//
+//         //   canvas.drawArc(sectorRect, startAngle, sweepAngle, true, edgePaint);     shadow
+//
+//            linePaint.setColor(Color.BLACK);
+//           // linePaint.setStrokeWidth(1);
+//
+//            Path linePath = new Path();
+//            linePath.arcTo(sectorRect, startAngle, sweepAngle);
+//            canvas.drawPath(linePath, linePaint);
+//
+//            float centerX = width / 2f;
+//            float centerY = height / 2f;
+//
+//            float angle = (startAngle + endAngle) / 2f;
+//
+//            float[] letterCoordinates = new float[32]; // Increase the array size to 32
+//            int[] letterIndices = new int[8]; // Move the declaration here
+//
+//            for (int j = 0; j < 8; j++) {
+//                int row = j / 4; // Calculate the row based on the index
+//                int column = j % 4;  // Calculate the column based on the index
+//                float letterspacing=30.5f;
+//               angle = (startAngle + endAngle) / 2f - rotationAngle;
+//                float x = centerX + (float) (radius * ((j +5) / 9.0) * Math.cos(Math.toRadians(angle ))) +(3/4)  * letterspacing;
+//                float y = centerY + (float) (radius * ((j + 5) /9.0) * Math.sin(Math.toRadians(angle )))+( 3/4)  * letterspacing;
+//
+//                textPaint.setTextAlign(Paint.Align.LEFT);
+//                // Adjust the y-coordinate based on the row
+//                if (row == 1) {
+//                    //y -= textPaint.getTextSize();
+//                    x = centerX + (float) (radius * ((j) / 9.0) * Math.cos(Math.toRadians(angle))) +(2)  * letterspacing;
+//                     y = centerY + (float) (radius * ((j) /9.0) * Math.sin(Math.toRadians(angle))) +(2)  * letterspacing;
+////                    x = centerX + (float) (radius * ((j + 1) / 9.0) * Math.cos(Math.toRadians(angle - rotationAngle))) + (j % 4) * letterSpacing;
+////                    y = centerY + (float) (radius * ((j + 1) / 9.0) * Math.sin(Math.toRadians(angle - rotationAngle))) + (j % 4) * letterSpacing;
+//                    textPaint.setTextAlign(Paint.Align.RIGHT);
+//                    // Use j*2 and j*2+1 to properly fill the coordinates array
+//
+//                }
+//                letterCoordinates[j * 4] = x;
+//                letterCoordinates[j * 4+ 1] = y;
+//            }
+//
+//
+//            for (int j = 0; j < 8; j++) {
+//
+//                letterIndices[j] = (i * 8 + j) % ALPHABETS.length;
+//            }
+//
+//           // int colorIndex = (i + (NUM_SECTORS - (int) (rotationAngle / (360f / NUM_SECTORS)))) % NUM_SECTORS;
+//            //textPaint.setColor(SECTOR_COLORS[colorIndex % SECTOR_COLORS.length]);
+//
+//            for (int j = 0; j < 8; j++) {
+//                String letter = ALPHABETS[letterIndices[j]]; // Get the letter from the ALPHABETS array
+//
+//                // Check if the letter is uppercase
+//                boolean isUppercase = Character.isUpperCase(letter.charAt(0));
+//                boolean isNumber = Character.isDigit(letter.charAt(0));
+//                // Apply bold formatting if it is uppercase
+//                boolean isSpecialCharacter = letter.equals(".") || letter.equals("\\");
+//                // Apply appropriate formatting based on the letter type
+//                if (isUppercase || isSpecialCharacter) {
+//                    textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+//                } else if (isNumber) {
+//                    textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
+//                } else {
+//                    textPaint.setTypeface(Typeface.DEFAULT);
+//                }
+//
+//                // Draw the letter on the canvas
+//                canvas.drawText(letter, letterCoordinates[j * 4], letterCoordinates[j * 4 + 1], textPaint);
+//            //    canvas.drawText(ALPHABETS[letterIndices[j]], letterCoordinates[j * 4], letterCoordinates[j * 4 + 1], textPaint);
+//
+//            }
+//
+//            startAngle = endAngle;
+//        }
+//
+//        edgePaint.setStrokeWidth(7);
+//        edgePaint.setStyle(Paint.Style.STROKE);
+//
+//        for (int i = 0; i < NUM_SECTORS; i++) {
+//            edgePaint.setColor(SECTOR_COLORS[i % SECTOR_COLORS.length]);
+//            canvas.drawArc(sectorRect, i * sweepAngle, sweepAngle, true, edgePaint);
+//        }
+//    }
 
 
 
@@ -247,7 +352,7 @@ public class WheelView extends View {
                         String currentText = textView.getText().toString();
                         String newText = currentText + selectedLetters.toString();
 
-                        String realPass = "Ss12Kml";
+                        String realPass = "Ss1Hlm";
                         if(usertry!=3){
                         if (checkpassword(newText, I)) {
                             if (realPass.length() - 1 <= I) {
@@ -358,7 +463,7 @@ public class WheelView extends View {
 
     public boolean checkpassword(String x,int y){
         int i =y;
-        String realpass = "Ss12Kml";
+        String realpass = "Ss1Hlm";
         String pass = x;
         if (realpass.length() > 0 && pass.length() > 0 &&i<=realpass.length()) {
             char firstLetter = realpass.charAt(i);
